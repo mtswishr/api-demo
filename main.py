@@ -10,7 +10,10 @@ from dotenv import load_dotenv
 def lookup_num(phone_num):
     load_dotenv()
     api_key = os.environ.get("api_key")
-    print(api_key)
+    if api_key is None:
+        print("API Key doesn't exist. Create a .env with your key")
+        return
+
     header = {"Authorization" : f"AccessKey {api_key}"}
     try:
         res = requests.get(f"https://rest.messagebird.com/lookup/{phone_num}", headers=header) 
