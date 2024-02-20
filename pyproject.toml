@@ -1,15 +1,17 @@
 [project]
-name = "api-demo"
-version = "0.3.1"
+name = "swisher-api-demo"
+version = "0.1.0"
 authors = [{ name = "Michael Swisher", email = "swishertmichael@gmail.com" }]
 readme = "README.md"
-repository = "https://github.com/mtswishr/api-demo"
 dependencies = [
-  'requests="2.31.0"',
-  "click=8.1.7",
-  "python-dotenv=1.0.1"
+  "requests>=2.31.0",
+  "click",
+  "python-dotenv"
 ]
 requires-python = ">= 3.10"
+
+[project.urls]
+repository = "https://github.com/mtswishr/api-demo"
 
 [project.scripts]
 bird = "main:lookup_num"
