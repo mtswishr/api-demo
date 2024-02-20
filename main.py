@@ -2,6 +2,7 @@ import requests
 import click
 import json
 import os
+import csv
 from dotenv import load_dotenv
 
 
@@ -60,17 +61,49 @@ def lookup_num(phone_num):
         print(f"Unknown error: {e}")
 
 @click.command()
-@click.argument("id")
+@click.option("--id", prompt="Please enter space delimited album IDs")
 def get_photos(id):
     """This command takes an ID and writes the associated files to present working directory."""
+    try:
+        ids = id.strip()
+        ids = str.split(ids, sep=" ")
+        ids = [int(id) for id in ids]
+    except ValueError as e:
+        print("Parsing the argument into an array failed, exiting.")
+        return
+    except Exception as e:
+        print(e)
+
     photos = requests.get("https://jsonplaceholder.typicode.com/photos")
     albums = requests.get("https://jsonplaceholder.typicode.com/albums")
 
     photos = json.loads(photos.content)
     albums = json.loads(albums.content)
 
+    rows = []
+    for album in albums:
+        if album['id'] in ids:
+            dir_name = album['title'].replace(' ', '_')
+            dir_name = f"{dir_name}_{album['id']}"
+            try:
+                if not os.path.exists(f"./{dir_name}"):
+                    os.mkdir(f"./{dir_name}")
+                dl_photo(album['id'], dir_name, photos, rows, album['title'])
+            except Exception as e:
+                print(e)
+
+    with open("./photos.csv", 'w') as csvfile:
+        csvwriter = csv.writer(csvfile)
+        csvwriter.writerow(['id', 'title', 'album_id', 'album_title', 'remote_path', 'local_path'])
+        csvwriter.writerows(rows)
+
+
+def dl_photo(album_id, target, photos, rows, album_title):
     for photo in photos:
-        if photo["albumId"] == int(id):
-            res = requests.get(photo["url"])
-            with open(f"./{photo['title']}", "ab") as file:
+        if photo['albumId'] == album_id:
+            res = requests.get(photo['url'])
+            file_name = photo['title'].replace(' ', '_')
+            local_path = f"./{target}/{file_name}.png"
+            with open(local_path, "ab") as file:
                       file.write(res.content)
+            rows.append([ photo['id'], photo['title'], album_id, album_title, photo['url'], local_path ])
